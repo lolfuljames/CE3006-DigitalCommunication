@@ -8,8 +8,8 @@ if nargin == 1
 end
 
 if type == "power"
-    output_dec = 10 ^ (input_dB / 10);
+    output_dec = 10 .^ (input_dB ./ 10);
 else
-    output_dec = 20 ^ (input_dB / 10);
+    output_dec = 20 .^ (input_dB ./ 10);
 end
 
