@@ -120,11 +120,13 @@ for i = 1 : length(SNR)
                 BPSK_error = BPSK_error + 1;
             end
         end
+        OOK_error = OOK_error./codeword_length;
+        BPSK_error = BPSK_error./codeword_length;
         OOK_average_error = OOK_error + OOK_average_error;
         BPSK_average_error = BPSK_error + BPSK_average_error;
 
     end
-%     plot the 5db signals
+%     plot the 5db SNR signals
     if (SNR_dB(i) == 5)
         figure(2)
         subplot(2, 1, 1);
@@ -199,7 +201,7 @@ hold on
 p2 = semilogy(SNR_dB, BPSK_error_rate, 'b-*');
 %axis([0 20 10^(-5) 1]);
 hold off
-ylabel('Error Rate');
+ylabel('Bit Error Rate (BER)');
 xlabel('SNR (dB)');
 legend([p1(1) p2(1)],{'OOK','DPSK'})
 

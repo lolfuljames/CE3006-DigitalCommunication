@@ -29,15 +29,15 @@ carrier_signal = amp .* cos(2*pi*carrier_freq*t);
 signal_length = sample_freq*data_length/data_rate + 1;
 
 %SNR_dB = 10 log (Signal_Power/Noise_Power)                 
-SNR_dB = 0:1:20;
+SNR_dB = 0:1:50;
 %==> SNR = Signal_Power/Noise_Power = 10^(SNR_dB/10)
 SNR = (10.^(SNR_dB/10));
 
 % Set run times
 test_samples = 20;
 
-OOK_error_rate = zeros(length(SNR));
-BPSK_error_rate = zeros(length(SNR));
+OOK_error_rate = zeros([length(SNR) 1]);
+BPSK_error_rate = zeros([length(SNR) 1]);
 
 %Different SNR value
 for i = 1 : length(SNR)
@@ -114,6 +114,8 @@ for i = 1 : length(SNR)
                 BPSK_error = BPSK_error + 1;
             end
         end
+        OOK_error = OOK_error./data_length;
+        BPSK_error = BPSK_error./data_length;
         OOK_average_error = OOK_error + OOK_average_error;
         BPSK_average_error = BPSK_error + BPSK_average_error;
 
@@ -127,11 +129,11 @@ for i = 1 : length(SNR)
 
         figure(3)
         subplot(4, 1, 1);
-        plot(OOK_signal, 'b');
+        spectrogram(OOK_signal, 'yaxis');
         title("Transmitted OOK Modulated Signal")
 
         subplot(4, 1, 2);
-        plot(OOK_received, 'b');
+        spectrogram(OOK_received, 'yaxis');
         title("Received OOK Modulated Signal")
 
         subplot(4, 1, 3);
@@ -144,11 +146,11 @@ for i = 1 : length(SNR)
 
         figure(4)
         subplot(4, 1, 1);
-        plot(BPSK_signal, 'b');
+        spectrogram(BPSK_signal, 'yaxis');
         title("Transmitted BPSK Modulated Signal")
 
         subplot(4, 1, 2);
-        plot(BPSK_received, 'b');
+        spectrogram(BPSK_received, 'yaxis');
         title("Received BPSK Modulated Signal")
 
         subplot(4, 1, 3);
@@ -186,6 +188,6 @@ hold on
 plot2 = semilogy(SNR_dB, BPSK_error_rate, 'b-*');
 %axis([0 20 10^(-5) 1]);
 hold off
-ylabel('Error Rate');
+ylabel('Bit Error Rate (BER)');
 xlabel('SNR (dB)');
 legend([plot1(1) plot2(1)],{'OOK','DPSK'})
