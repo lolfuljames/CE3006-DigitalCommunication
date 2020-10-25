@@ -1,5 +1,6 @@
 function [generated_data] = generate_data(data_length)
-%UNTITLED2 Summary of this function goes here
-%   Detailed explanation goes here
+% This function generates an array of data
+%   params:
+%   data_length - number of data to be generated (length of the array)
 generated_data = round(rand(1, data_length)) .* 2 - 1;
 end
