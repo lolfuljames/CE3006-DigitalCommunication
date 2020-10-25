@@ -10,7 +10,7 @@ carrier_freq = 10000; %10kHz
 sample_freq = 16 * carrier_freq;
 data_rate = 1000; %1kbps
 data_length = 1024;
-codeword_length = 1792;
+encoded_signal_length = 1792;
 amp = 5;
 
 %low pass butterworth filter
@@ -21,13 +21,13 @@ amp = 5;
 [d, c] = butter(6, 0.2, 'high');
 
 %time
-t = 0: 1/sample_freq : codeword_length/data_rate;
+t = 0: 1/sample_freq : encoded_signal_length/data_rate;
 
 %Carrier
 carrier_signal = amp .* cos(2*pi*carrier_freq*t);
 
 %signal length
-signal_length = sample_freq*codeword_length/data_rate + 1;
+signal_length = sample_freq*encoded_signal_length/data_rate + 1;
 
 %SNR_dB = 10 log (Signal_Power/Noise_Power)    
 SNR_dB = 0:5:50;
@@ -100,8 +100,8 @@ for i = 1 : length(SNR)
         %demodulate
         %sampling AND threshold
         sample_period = sample_freq / data_rate;
-        [OOK_sample, OOK_result] = sample_and_threshold(OOK_filtered, sample_period, amp/2, codeword_length);
-        [BPSK_sample, BPSK_result] = sample_and_threshold(BPSK_output, sample_period, 0, codeword_length);
+        [OOK_sample, OOK_result] = sample_and_threshold(OOK_filtered, sample_period, amp/2, encoded_signal_length);
+        [BPSK_sample, BPSK_result] = sample_and_threshold(BPSK_output, sample_period, 0, encoded_signal_length);
         
 		%Calculate the average error for every runtime
 		%Avg_ErrorOOK = num_error(resultOOK, EncodeHamming, Num_Bit) + Avg_ErrorOOK;                   
@@ -120,8 +120,8 @@ for i = 1 : length(SNR)
                 BPSK_error = BPSK_error + 1;
             end
         end
-        OOK_error = OOK_error./codeword_length;
-        BPSK_error = BPSK_error./codeword_length;
+        OOK_error = OOK_error./encoded_signal_length;
+        BPSK_error = BPSK_error./encoded_signal_length;
         OOK_average_error = OOK_error + OOK_average_error;
         BPSK_average_error = BPSK_error + BPSK_average_error;
 
