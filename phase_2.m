@@ -117,7 +117,65 @@ for i = 1 : length(SNR)
         OOK_average_error = OOK_error + OOK_average_error;
         BPSK_average_error = BPSK_error + BPSK_average_error;
 
-	end
+    end
+%    Plot the 5db SNR signals
+    if (SNR_dB(i) == 5)
+        figure(2)
+        plot(data, 'b');
+        title("Original Data")
+        xlim([0 1100])
+
+        figure(3)
+        subplot(4, 1, 1);
+        plot(OOK_signal, 'b');
+        title("Transmitted OOK Modulated Signal")
+
+        subplot(4, 1, 2);
+        plot(OOK_received, 'b');
+        title("Received OOK Modulated Signal")
+
+        subplot(4, 1, 3);
+        plot(OOK_sample)
+        title("OOK Demodulated Signal")
+
+        subplot(4, 1, 4);
+        plot(OOK_result);
+        title("OOK Decoded Signal");
+
+        figure(4)
+        subplot(4, 1, 1);
+        plot(BPSK_signal, 'b');
+        title("Transmitted BPSK Modulated Signal")
+
+        subplot(4, 1, 2);
+        plot(BPSK_received, 'b');
+        title("Received BPSK Modulated Signal")
+
+        subplot(4, 1, 3);
+        plot(BPSK_sample)
+        title("BPSK Demodulated Signal")
+
+        subplot(4, 1, 4);
+        plot(BPSK_result);
+        title("BPSK Decoded Signal");
+
+        figure(5);
+        subplot(3, 1, 1);
+        plot(data);
+        title("Original Data");
+        xlim([0 1024]);
+        ylim([0 1]);
+
+        subplot(3, 1, 2);
+        plot(OOK_result);
+        title("OOK Decoded Data");
+        xlim([0 1024]);
+
+        subplot(3, 1, 3);
+        plot(BPSK_result);
+        title("BPSK Decoded Data");
+        xlim([0 1024]);
+    end
 	OOK_error_rate(i) = OOK_average_error / test_samples;
     BPSK_error_rate(i) = BPSK_average_error / test_samples;
 end
@@ -131,59 +189,3 @@ hold off
 ylabel('Error Rate');
 xlabel('SNR (dB)');
 legend([plot1(1) plot2(1)],{'OOK','DPSK'})
-
-figure(2)
-plot(data, 'b');
-title("Original Data")
-xlim([0 1100])
-
-figure(3)
-subplot(4, 1, 1);
-plot(OOK_signal, 'b');
-title("Transmitted OOK Modulated Signal")
-
-subplot(4, 1, 2);
-plot(OOK_received, 'b');
-title("Received OOK Modulated Signal")
-
-subplot(4, 1, 3);
-plot(OOK_sample)
-title("OOK Demodulated Signal")
-
-subplot(4, 1, 4);
-plot(OOK_result);
-title("OOK Decoded Signal");
-
-figure(4)
-subplot(4, 1, 1);
-plot(BPSK_signal, 'b');
-title("Transmitted BPSK Modulated Signal")
-
-subplot(4, 1, 2);
-plot(BPSK_received, 'b');
-title("Received BPSK Modulated Signal")
-
-subplot(4, 1, 3);
-plot(BPSK_sample)
-title("BPSK Demodulated Signal")
-
-subplot(4, 1, 4);
-plot(BPSK_result);
-title("BPSK Decoded Signal");
-
-figure(5);
-subplot(3, 1, 1);
-plot(data);
-title("Original Data");
-xlim([0 1024]);
-ylim([0 1]);
-
-subplot(3, 1, 2);
-plot(OOK_result);
-title("OOK Decoded Data");
-xlim([0 1024]);
-
-subplot(3, 1, 3);
-plot(BPSK_result);
-title("BPSK Decoded Data");
-xlim([0 1024]);
