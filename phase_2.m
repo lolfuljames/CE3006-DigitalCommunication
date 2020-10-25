@@ -3,7 +3,9 @@
 % 
 % Amplitude of OOK is set to 5
 % Sampling Frequency = 16 x Carrier Frequency
-%
+% 
+% Generate data -> OOK/BPSK Modulation -> Noise -> Demodulation -> Comparison
+% 
 
 clear all; close all; clc;
 carrier_freq = 10000; %10kHz
@@ -12,40 +14,38 @@ data_rate = 1000; %1kbps
 data_length = 1024;
 amp = 5;
 
-%low pass butterworth filter
-%6th order, 0.2 cutoff frequency
+% Low Pass 6th order Butterworth filter with 0.2 normalised cutoff freq
 [b, a] = butter(6, 0.2);
 
-%high pass butterworth filter
+% High Pass 6th order Butterworth filter with 0.2 normalised cutoff freq
 [d, c] = butter(6, 0.2, 'high');
 
-%time
+% Time simulation
 t = 0: 1/sample_freq : data_length/data_rate;
 
-%Carrier
+% Carrier Signal Generation
 carrier_signal = amp .* cos(2*pi*carrier_freq*t);
 
-%signal length
+% Length of transmitted signal
 signal_length = sample_freq*data_length/data_rate + 1;
 
-%SNR_dB = 10 log (Signal_Power/Noise_Power)                 
-SNR_dB = 0:1:50;
-%==> SNR = Signal_Power/Noise_Power = 10^(SNR_dB/10)
+% SNR values to test             
+SNR_dB = 0:5:50;
 SNR = (10.^(SNR_dB/10));
 
-% Set run times
+% Number of tests per SNR
 test_samples = 20;
 
 OOK_error_rate = zeros([length(SNR) 1]);
 BPSK_error_rate = zeros([length(SNR) 1]);
 
-%Different SNR value
 for i = 1 : length(SNR)
 	OOK_average_error = 0;
     BPSK_average_error = 0;
     
 	for j = 1 : test_samples
-        %Generate Data
+        
+        % Generate Data
         data = round(rand(1,data_length));
 
         signal = zeros(1, signal_length);
@@ -54,10 +54,10 @@ for i = 1 : length(SNR)
         end
         signal(signal_length) = signal(signal_length - 1);
 
-        %on-off keying
+        % OOK Modulation
         OOK_signal = carrier_signal .* signal;
 
-        %binary phase shift keying
+        % BPSK Modulation
         BPSK_source_signal = signal .* 2 - 1;
         BPSK_signal = carrier_signal .* BPSK_source_signal;
 
@@ -120,6 +120,7 @@ for i = 1 : length(SNR)
         BPSK_average_error = BPSK_error + BPSK_average_error;
 
     end
+    
 %    Plot the 5db SNR signals
     if (SNR_dB(i) == 5)
         figure(2)
@@ -182,11 +183,11 @@ for i = 1 : length(SNR)
     BPSK_error_rate(i) = BPSK_average_error / test_samples;
 end
 
+% Plot OOK vs DBSK bit error rate
 figure(1)
 plot1 = semilogy(SNR_dB, OOK_error_rate,'r-*');
 hold on
 plot2 = semilogy(SNR_dB, BPSK_error_rate, 'b-*');
-%axis([0 20 10^(-5) 1]);
 hold off
 ylabel('Bit Error Rate (BER)');
 xlabel('SNR (dB)');
