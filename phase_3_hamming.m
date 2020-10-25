@@ -30,7 +30,7 @@ carrier_signal = amp .* cos(2*pi*carrier_freq*t);
 signal_length = sample_freq*codeword_length/data_rate + 1;
 
 %SNR_dB = 10 log (Signal_Power/Noise_Power)                 
-SNR_dB = 0:1:20;
+SNR_dB = 0:5:50;
 %==> SNR = Signal_Power/Noise_Power = 10^(SNR_dB/10)
 SNR = (10.^(SNR_dB/10));
 
