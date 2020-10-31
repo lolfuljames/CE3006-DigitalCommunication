@@ -12,10 +12,13 @@ carrier_freq = 10000; %10kHz
 sample_freq = 16 * carrier_freq;
 data_rate = 1000; %1kbps
 data_length = 1024;
-amp = 5;
+amp = 10;
 
 % Low Pass 6th order Butterworth filter with 0.2 normalised cutoff freq
 [b, a] = butter(6, 0.2);
+
+% High Pass 6th order Butterworth filter
+[d, c] = butter(6, 0.2, 'high');
 
 % Time simulation
 t = 0: 1/sample_freq : data_length/data_rate;
@@ -44,7 +47,7 @@ for i = 1 : length(SNR)
         %*********************Baseband***********************%
         % Generate symbols(data) with NRZ-L
         data = round(rand(1,data_length));
-
+        % Sampled signal generated from data
         signal = zeros(1, signal_length);
         for k = 1: signal_length - 1
             signal(k) = data(ceil(k*data_rate/sample_freq));
@@ -99,8 +102,8 @@ for i = 1 : length(SNR)
         %demodulate
         %sampling AND threshold
         sample_period = sample_freq / data_rate;
-        [OOK_sample, OOK_result] = sample_and_threshold(OOK_filtered, sample_period, amp/2, data_length);
-        [BPSK_sample, BPSK_result] = sample_and_threshold(BPSK_output, sample_period, 0, data_length);
+        [OOK_sample, OOK_result] = sample_and_threshold(OOK_filtered, sample_period, (amp^2)/2, data_length);
+        [BPSK_sample, BPSK_result] = sample_and_threshold(BPSK_output, sample_period, 0,data_length);
         
 		%Calculate the average error for every runtime
 		%Avg_ErrorOOK = num_error(resultOOK, EncodeHamming, Num_Bit) + Avg_ErrorOOK;                   
@@ -193,4 +196,4 @@ plot2 = semilogy(SNR_dB, BPSK_error_rate, 'b-*');
 hold off
 ylabel('Bit Error Rate (BER)');
 xlabel('SNR (dB)');
-legend([plot1(1) plot2(1)],{'OOK','DPSK'})
+legend([plot1(1) plot2(1)],{'OOK','BPSK'})
