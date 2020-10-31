@@ -17,9 +17,6 @@ amp = 5;
 % Low Pass 6th order Butterworth filter with 0.2 normalised cutoff freq
 [b, a] = butter(6, 0.2);
 
-% High Pass 6th order Butterworth filter with 0.2 normalised cutoff freq
-[d, c] = butter(6, 0.2, 'high');
-
 % Time simulation
 t = 0: 1/sample_freq : data_length/data_rate;
 
@@ -44,8 +41,8 @@ for i = 1 : length(SNR)
     BPSK_average_error = 0;
     
 	for j = 1 : test_samples
-        
-        % Generate Data
+        %*********************Baseband***********************%
+        % Generate symbols(data) with NRZ-L
         data = round(rand(1,data_length));
 
         signal = zeros(1, signal_length);
@@ -53,6 +50,8 @@ for i = 1 : length(SNR)
             signal(k) = data(ceil(k*data_rate/sample_freq));
         end
         signal(signal_length) = signal(signal_length - 1);
+        
+        %**************Baseband -> Bandpass ****************
 
         % OOK Modulation
         OOK_signal = carrier_signal .* signal;
@@ -60,7 +59,9 @@ for i = 1 : length(SNR)
         % BPSK Modulation
         BPSK_source_signal = signal .* 2 - 1;
         BPSK_signal = carrier_signal .* BPSK_source_signal;
-
+        
+        %***************Xmit through Channel ***************
+        %Simulates channel effect by adding in noise
         OOK_signal_power = (norm(OOK_signal)^2)/signal_length;
         BPSK_signal_power = (norm(BPSK_signal)^2)/signal_length;
         
@@ -70,16 +71,17 @@ for i = 1 : length(SNR)
 		%Received Signal OOK
 		OOK_received = OOK_signal+OOK_noise;
         
-        %OOK detection
-        OOK_squared = OOK_received .* OOK_received;
-        %low pass filter
-        OOK_filtered = filtfilt(b, a, OOK_squared);
-        
         %Generate Noise BPSK
 		BPSK_noise_power = BPSK_signal_power ./SNR(i);
 		BPSK_noise = sqrt(BPSK_noise_power/2) .*randn(1,signal_length);
 		%Received Signal BPSK
 		BPSK_received = BPSK_signal+BPSK_noise;
+        
+        %*****************Receiver detection***************
+        %OOK detection
+        OOK_squared = OOK_received .* OOK_received;
+        %low pass filter
+        OOK_filtered = filtfilt(b, a, OOK_squared);
         
         %non-coherent detection
         BPSK_squared = BPSK_received .* BPSK_received;
