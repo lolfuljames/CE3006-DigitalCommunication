@@ -6,10 +6,16 @@ signal_power = 1;
 % 0-50(dB) step size of 5
 SNR_dB = 0:1:50;
 % SNR = Signal_Power/Noise_Power = 10^(SNR_dB/10)
-SNR = (10.^(SNR_dB/10));
+
+SNR = convert_dB_to_dec(SNR_dB, 'power');
+% SNR = (10.^(SNR_dB/10));
+
 % Noise Power = Signal_Power / SNR
 noise_powers = signal_power ./ SNR;
 threshold = 0;
+
+% Generate data length of 1024 bits
+data = generate_data(data_length); 
 
 %Set run times
 test_samples = 20;
@@ -19,26 +25,24 @@ bit_errors = [];
 for i = 1 : length(SNR)
 	bit_errors(i) = 0;
 	for j = 1 : test_samples
-  	    % Generate data length of 1024 bits
-		data = generate_data(data_length); 
         % Generate noise according to SNR
 		noise = generate_noise(data_length, noise_powers(i));   
 		% Received Signal is Data + Noise
 		received_signal = data + noise;                      
 
-    % Threshold Logic
-    % data >= threshold, treats as 1
-    % data < threshold, treats as 0 
-    received_signal = 2*(received_signal >= threshold)-1;
-    error_signal = received_signal ~= data;
-		%Calculate bit error rate during transmission
-    bit_errors(i) = bit_errors(i) + mean(error_signal);
+		% Threshold Logic
+		% data >= threshold, treats as 1
+		% data < threshold, treats as 0 
+		received_signal = 2*(received_signal >= threshold)-1;
+		error_signal = received_signal ~= data;
+			%Calculate bit error rate during transmission
+		bit_errors(i) = bit_errors(i) + mean(error_signal);
 	end
   bit_errors(i) = bit_errors(i)/test_samples;
 end  
 
 % Calculate theoretical BER
-theory_rate = (1/2)*erfc(sqrt(SNR));
+theory_rate = (1 / 2) * erfc(sqrt(SNR / 2));
     
 %Graph and Plot the result           
 figure(1)
