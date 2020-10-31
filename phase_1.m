@@ -4,7 +4,7 @@ data_length = 1024;
 signal_power = 1; 
 % Signal Power(dB) = 10 log (Signal_Power/Noise_Power)                 
 % 0-50(dB) step size of 5
-SNR_dB = 0:5:50;
+SNR_dB = 0:1:50;
 % SNR = Signal_Power/Noise_Power = 10^(SNR_dB/10)
 
 SNR = convert_dB_to_dec(SNR_dB, 'power');
