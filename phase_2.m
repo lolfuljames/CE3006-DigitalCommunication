@@ -17,9 +17,6 @@ amp = 5;
 % Low Pass 6th order Butterworth filter with 0.2 normalised cutoff freq
 [b, a] = butter(6, 0.2);
 
-% High Pass 6th order Butterworth filter
-[d, c] = butter(6, 0.2, 'high');
-
 % Time simulation
 t = 0: 1/sample_freq : data_length/data_rate;
 
@@ -30,7 +27,7 @@ carrier_signal = amp .* cos(2*pi*carrier_freq*t);
 signal_length = sample_freq*data_length/data_rate + 1;
 
 % SNR values to test             
-SNR_dB = 0:5:50;
+SNR_dB = 0:1:20;
 SNR = (10.^(SNR_dB/10));
 
 % Number of tests per SNR
@@ -70,42 +67,30 @@ for i = 1 : length(SNR)
     
 	for j = 1 : test_samples
         
-        %Generate Noise OOK
-		OOK_noise_power = OOK_signal_power ./SNR(i);
-		OOK_noise = sqrt(OOK_noise_power/2) .*randn(1,signal_length);
+        %Generate Noise
+		noise_power = OOK_signal_power ./SNR(i);
+		noise = sqrt(noise_power/2) .*randn(1,signal_length);
+  
 		%Received Signal OOK
-		OOK_received = OOK_signal+OOK_noise;
+		OOK_received = OOK_signal+noise;
         
-        %Generate Noise BPSK
-		BPSK_noise_power = BPSK_signal_power ./SNR(i);
-		BPSK_noise = sqrt(BPSK_noise_power/2) .*randn(1,signal_length);
 		%Received Signal BPSK
-		BPSK_received = BPSK_signal+BPSK_noise;
+		BPSK_received = BPSK_signal+noise;
         
         %*****************Receiver detection***************
         %OOK detection
-        OOK_squared = OOK_received .* OOK_received;
-        %low pass filter
+        OOK_squared = OOK_received .* (2 .* carrier_signal);
         OOK_filtered = filtfilt(b, a, OOK_squared);
         
-        %non-coherent detection
-        BPSK_squared = BPSK_received .* BPSK_received;
-        %high pass filter (supposingly band pass filter)
-        BPSK_filtered = filtfilt(d, c, BPSK_squared);
-        
-        %frequency divider
-        BPSK_divided = interp(BPSK_filtered, 2);
-        BPSK_divided = BPSK_divided(1:length(BPSK_filtered));
-        
-        %Multiple and Low Pass Filter
-        BPSK_multiplied = BPSK_divided .* BPSK_received;
-        BPSK_output = filtfilt(b, a, BPSK_multiplied);
+        %BPSK detection
+        BPSK_squared = BPSK_received .* (2 .* carrier_signal);
+        BPSK_filtered = filtfilt(b, a, BPSK_squared);
         
         %demodulate
         %sampling AND threshold
         sample_period = sample_freq / data_rate;
-        [OOK_sample, OOK_result] = sample_and_threshold(OOK_filtered, sample_period, (amp^2)/2, data_length);
-        [BPSK_sample, BPSK_result] = sample_and_threshold(BPSK_output, sample_period, 0,data_length);
+        [OOK_sample, OOK_result] = sample_and_threshold(OOK_filtered, sample_period, amp^2/2, data_length);
+        [BPSK_sample, BPSK_result] = sample_and_threshold(BPSK_filtered, sample_period, 0,data_length);
         
 		%Calculate the average error for every runtime
 		%Avg_ErrorOOK = num_error(resultOOK, EncodeHamming, Num_Bit) + Avg_ErrorOOK;                   
@@ -113,7 +98,7 @@ for i = 1 : length(SNR)
         
         OOK_error = 0;
         BPSK_error = 0;
-        for k = 1: data_length - 1
+        for k = 1: data_length
             if(OOK_result(k) ~= data(k))
                 OOK_error = OOK_error + 1;
             end

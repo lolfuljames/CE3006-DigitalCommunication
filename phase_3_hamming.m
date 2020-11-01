@@ -14,13 +14,10 @@ sample_freq = 16 * carrier_freq;
 data_rate = 1000; %1kbps
 data_length = 1024;
 encoded_signal_length = 1792;
-amp = 5;
+amp = 1;
 
 % Low Pass 6th order Butterworth filter with 0.2 normalised cutoff freq
 [b, a] = butter(6, 0.2);
-
-% High Pass 6th order Butterworth filter with 0.2 normalised cutoff freq
-[d, c] = butter(6, 0.2, 'high');
 
 % Time simulation
 t = 0: 1/sample_freq : encoded_signal_length/data_rate;
@@ -32,7 +29,7 @@ carrier_signal = amp .* cos(2*pi*carrier_freq*t);
 signal_length = sample_freq*encoded_signal_length/data_rate + 1;
 
 % SNR values to test
-SNR_dB = 0:5:50;
+SNR_dB = 0:1:5;
 SNR = (10.^(SNR_dB/10));
 
 % Number of tests per SNR
@@ -68,40 +65,26 @@ for i = 1 : length(SNR)
     
 	for j = 1 : test_samples
         
-        % Generate noise for OOK
-		OOK_noise_power = OOK_signal_power ./SNR(i);
-		OOK_noise = sqrt(OOK_noise_power/2) .*randn(1,signal_length);
+        % Generate noise
+		noise_power = OOK_signal_power ./SNR(i);
+		noise = sqrt(noise_power/2) .*randn(1,signal_length);
+        
 		% OOK Signal on Receiver's end
-		OOK_received = OOK_signal+OOK_noise;
+		OOK_received = OOK_signal+noise;
         
         % Start of OOK Detection
-        OOK_squared = OOK_received .* OOK_received;
+        OOK_squared = OOK_received .* 2.* carrier_signal;
         
         % Low Pass Filter
         OOK_filtered = filtfilt(b, a, OOK_squared);
         
-        % Generate noise for BPSK
-		BPSK_noise_power = BPSK_signal_power ./SNR(i);
-		BPSK_noise = sqrt(BPSK_noise_power/2) .*randn(1,signal_length);
-        
 		% BPSK Signal on Receiver's end
-		BPSK_received = BPSK_signal+BPSK_noise;
+		BPSK_received = BPSK_signal+noise;
         
         % Non-coherent detection
-        BPSK_squared = BPSK_received .* BPSK_received;
-        
-        % High Pass Filter to remove DC signal
-        BPSK_filtered = filtfilt(d, c, BPSK_squared);
-        
-        % Frequency Divider (divide by 2)
-        BPSK_divided = interp(BPSK_filtered, 2);
-        BPSK_divided = BPSK_divided(1:length(BPSK_filtered));
-        
-        % Multiply
-        BPSK_multiplied = BPSK_divided .* BPSK_received;
-        
+        BPSK_squared = BPSK_received .* 2.* carrier_signal;
         % Low Pass Filter
-        BPSK_output = filtfilt(b, a, BPSK_multiplied);
+        BPSK_output = filtfilt(b, a, BPSK_squared);
         
         % Demodulation by sample & threshold
         sample_period = sample_freq / data_rate;
@@ -115,7 +98,7 @@ for i = 1 : length(SNR)
         OOK_error = 0;
         BPSK_error = 0;
         % Calculate the average bit error rate for each sample test
-        for k = 1: data_length - 1
+        for k = 1: data_length
             if(OOK_decoded(k) ~= data(k))
                 OOK_error = OOK_error + 1;
             end

@@ -20,9 +20,8 @@ sampled_signal_length = sampling_freq*encoded_signal_length/data_rate + 1;
 
 % Number of samples
 nb_samples = 20;
-% Low-pass filter & High-pass filter - 6th order, 0.2 cutoff frequency
+% Low-pass filter - 6th order, 0.2 cutoff frequency
 [b, a] = butter(6, 0.2);
-[d, c] = butter(6, 0.2, 'high');
 % Signal power  
 signal_power = 1; 
 % maximum SNR
@@ -74,32 +73,22 @@ for i = 1 : length(SNR)
     for j = 1 : nb_samples
         
         % Generate White Gaussian Channel Noise for OOK and BPSK
-        OOK_noise_power = OOK_signal_power ./ SNR(i);
-        OOK_noise = sqrt(OOK_noise_power/2) .*randn(1,sampled_signal_length);
-        
-        BPSK_noise_power = BPSK_signal_power ./ SNR(i);
-        BPSK_noise = sqrt(BPSK_noise_power/2) .* randn(1,sampled_signal_length);
+        noise_power = OOK_signal_power ./ SNR(i);
+        noise = sqrt(noise_power/2) .*randn(1,sampled_signal_length);
         
         % Received Signal with added Channel Noise for OOK and BPSK
-        OOK_received = OOK_signal + OOK_noise;
-        BPSK_received = BPSK_signal + BPSK_noise;
+        OOK_received = OOK_signal + noise;
+        BPSK_received = BPSK_signal + noise;
         
         % Non-Coherent Detection: OOK (Lecture notes 04 - pg 18)
         % Squared
-        OOK_squared = OOK_received .* OOK_received;
+        OOK_squared = OOK_received .* 2 .* carrier_signal;
         % Low-Pass Filter
         OOK_filtered = filtfilt(b, a, OOK_squared);
   
         % Non-Coherent Detection: BPSK (Lecture notes 04 - pg 50)
         % Squared
-        BPSK_squared = BPSK_received .* BPSK_received;
-        % Bandpass Filter
-        BPSK_filtered = filtfilt(d, c, BPSK_squared);
-        % Frequency Divider
-        BPSK_divided = interp(BPSK_filtered, 2);
-        BPSK_divided = BPSK_divided(1:length(BPSK_filtered));
-        % Multiply with recovered carrier
-        BPSK_multiplied = BPSK_divided .* BPSK_received;
+        BPSK_squared = BPSK_received .* 2 .* carrier_signal;
         % Low-Pass Filter
         BPSK_output = filtfilt(b, a, BPSK_multiplied);
         
