@@ -39,34 +39,36 @@ test_samples = 20;
 OOK_error_rate = zeros([length(SNR) 1]);
 BPSK_error_rate = zeros([length(SNR) 1]);
 
+%*********************Baseband***********************%
+% Generate symbols(data) with NRZ-L
+data = round(rand(1,data_length));
+% Sampled signal generated from data
+signal = zeros(1, signal_length);
+for k = 1: signal_length - 1
+    signal(k) = data(ceil(k*data_rate/sample_freq));
+end
+signal(signal_length) = signal(signal_length - 1);
+
+%**************Baseband -> Bandpass ****************
+
+% OOK Modulation
+OOK_signal = carrier_signal .* signal;
+
+% BPSK Modulation
+BPSK_source_signal = signal .* 2 - 1;
+BPSK_signal = carrier_signal .* BPSK_source_signal;
+
+%***************Xmit through Channel ***************
+%Simulates channel effect by adding in noise
+OOK_signal_power = (norm(OOK_signal)^2)/signal_length;
+BPSK_signal_power = (norm(BPSK_signal)^2)/signal_length;
+
+% For different SNR values, test over 20 samples
 for i = 1 : length(SNR)
 	OOK_average_error = 0;
     BPSK_average_error = 0;
     
 	for j = 1 : test_samples
-        %*********************Baseband***********************%
-        % Generate symbols(data) with NRZ-L
-        data = round(rand(1,data_length));
-        % Sampled signal generated from data
-        signal = zeros(1, signal_length);
-        for k = 1: signal_length - 1
-            signal(k) = data(ceil(k*data_rate/sample_freq));
-        end
-        signal(signal_length) = signal(signal_length - 1);
-        
-        %**************Baseband -> Bandpass ****************
-
-        % OOK Modulation
-        OOK_signal = carrier_signal .* signal;
-
-        % BPSK Modulation
-        BPSK_source_signal = signal .* 2 - 1;
-        BPSK_signal = carrier_signal .* BPSK_source_signal;
-        
-        %***************Xmit through Channel ***************
-        %Simulates channel effect by adding in noise
-        OOK_signal_power = (norm(OOK_signal)^2)/signal_length;
-        BPSK_signal_power = (norm(BPSK_signal)^2)/signal_length;
         
         %Generate Noise OOK
 		OOK_noise_power = OOK_signal_power ./SNR(i);
@@ -197,3 +199,4 @@ hold off
 ylabel('Bit Error Rate (BER)');
 xlabel('SNR (dB)');
 legend([plot1(1) plot2(1)],{'OOK','BPSK'})
+xlim([0 50]);

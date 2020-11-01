@@ -42,7 +42,29 @@ SNR = generate_SNR(MAX_dB, 5);
 OOK_error_rate = zeros([length(SNR) 1]);
 BPSK_error_rate = zeros([length(SNR) 1]);
 
-% For each value of SNR
+% Original signal 
+original_signal = round(rand(1,signal_length));
+% Cyclic encoding
+encoded_signal = encode(original_signal, codeword_length, message_length, 'cyclic/binary', genpoly);
+
+% Sampling
+sampled_signal = zeros(1, sampled_signal_length);
+for k = 1: sampled_signal_length - 1
+    sampled_signal(k) = encoded_signal(ceil(k*data_rate/sampling_freq));
+end
+sampled_signal(sampled_signal_length) = sampled_signal(sampled_signal_length - 1);
+
+% Modulation: On-Off Keying
+OOK_signal = carrier_signal .* sampled_signal;
+
+% Modulation: Binary Phase Shift Keying 
+BPSK_source_signal = sampled_signal .* 2 - 1; % put to -1 +1
+BPSK_signal = carrier_signal .* BPSK_source_signal;
+
+OOK_signal_power = (norm(OOK_signal)^2)/sampled_signal_length;
+BPSK_signal_power = (norm(BPSK_signal)^2)/sampled_signal_length;
+
+% For each value of SNR, test of 20 samples.
 for i = 1 : length(SNR) 
     
 	OOK_average_error = 0;
@@ -50,27 +72,6 @@ for i = 1 : length(SNR)
     result = zeros(1, nb_samples);
     
     for j = 1 : nb_samples
-        % Original signal 
-        original_signal = round(rand(1,signal_length));
-        % Cyclic encoding
-        encoded_signal = encode(original_signal, codeword_length, message_length, 'cyclic/binary', genpoly);
-        
-        % Sampling
-        sampled_signal = zeros(1, sampled_signal_length);
-        for k = 1: sampled_signal_length - 1
-            sampled_signal(k) = encoded_signal(ceil(k*data_rate/sampling_freq));
-        end
-        sampled_signal(sampled_signal_length) = sampled_signal(sampled_signal_length - 1);
-        
-        % Modulation: On-Off Keying
-        OOK_signal = carrier_signal .* sampled_signal;
-        
-        % Modulation: Binary Phase Shift Keying 
-        BPSK_source_signal = sampled_signal .* 2 - 1; % put to -1 +1
-        BPSK_signal = carrier_signal .* BPSK_source_signal;
-        
-        OOK_signal_power = (norm(OOK_signal)^2)/sampled_signal_length;
-        BPSK_signal_power = (norm(BPSK_signal)^2)/sampled_signal_length;
         
         % Generate White Gaussian Channel Noise for OOK and BPSK
         OOK_noise_power = OOK_signal_power ./ SNR(i);
@@ -104,7 +105,7 @@ for i = 1 : length(SNR)
         
         % Demodulation: Sampling and Threshold
         sampling_period = sampling_freq/data_rate;
-        [OOK_sample, OOK_result] = sample_and_threshold(OOK_filtered, sampling_period, 5/2, encoded_signal_length);
+        [OOK_sample, OOK_result] = sample_and_threshold(OOK_filtered, sampling_period, 25/2, encoded_signal_length);
         [BPSK_sample, BPSK_result] = sample_and_threshold(BPSK_output, sampling_period, 0, encoded_signal_length);
         
         % Cyclic Decoding
@@ -198,3 +199,4 @@ hold off
 ylabel('Bit Error Rate (BER)');
 xlabel('SNR (dB)');
 legend([p1(1) p2(1)],{'OOK','DPSK'})
+xlim([0 50]);

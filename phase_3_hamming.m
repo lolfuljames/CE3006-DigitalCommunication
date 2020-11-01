@@ -40,32 +40,33 @@ test_samples = 20;
 
 OOK_error_rate = zeros([length(SNR) 1]);
 BPSK_error_rate = zeros([length(SNR) 1]);
+        
+% Generate Hamming encoded signals
+data = round(rand(1,data_length));
+hamming_signal= encode(data,7,4,'hamming/fmt');
 
+signal = zeros(1, signal_length);
+for k = 1: signal_length - 1
+    signal(k) = hamming_signal(ceil(k*data_rate/sample_freq));
+end
+signal(signal_length) = signal(signal_length - 1);
+
+% OOK Modulation
+OOK_signal = carrier_signal .* signal;
+
+% BPSK Modulation
+BPSK_source_signal = signal .* 2 - 1;
+BPSK_signal = carrier_signal .* BPSK_source_signal;
+
+OOK_signal_power = (norm(OOK_signal)^2)/signal_length;
+BPSK_signal_power = (norm(BPSK_signal)^2)/signal_length;
+
+% For different SNR values, test over 20 samples
 for i = 1 : length(SNR)
 	OOK_average_error = 0;
     BPSK_average_error = 0;
     
 	for j = 1 : test_samples
-        
-        % Generate Hamming encoded signals
-        data = round(rand(1,data_length));
-        hamming_signal= encode(data,7,4,'hamming/fmt');
-
-        signal = zeros(1, signal_length);
-        for k = 1: signal_length - 1
-            signal(k) = hamming_signal(ceil(k*data_rate/sample_freq));
-        end
-        signal(signal_length) = signal(signal_length - 1);
-
-        % OOK Modulation
-        OOK_signal = carrier_signal .* signal;
-
-        % BPSK Modulation
-        BPSK_source_signal = signal .* 2 - 1;
-        BPSK_signal = carrier_signal .* BPSK_source_signal;
-
-        OOK_signal_power = (norm(OOK_signal)^2)/signal_length;
-        BPSK_signal_power = (norm(BPSK_signal)^2)/signal_length;
         
         % Generate noise for OOK
 		OOK_noise_power = OOK_signal_power ./SNR(i);
@@ -104,7 +105,7 @@ for i = 1 : length(SNR)
         
         % Demodulation by sample & threshold
         sample_period = sample_freq / data_rate;
-        [OOK_sample, OOK_result] = sample_and_threshold(OOK_filtered, sample_period, amp/2, encoded_signal_length);
+        [OOK_sample, OOK_result] = sample_and_threshold(OOK_filtered, sample_period, (amp^2)/2, encoded_signal_length);
         [BPSK_sample, BPSK_result] = sample_and_threshold(BPSK_output, sample_period, 0, encoded_signal_length);
         
 
@@ -207,4 +208,5 @@ hold off
 ylabel('Bit Error Rate (BER)');
 xlabel('SNR (dB)');
 legend([p1(1) p2(1)],{'OOK','DPSK'})
+xlim([0 50]);
 
