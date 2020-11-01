@@ -95,23 +95,14 @@ for i = 1 : length(SNR)
         OOK_decoded = decode(OOK_result,7,4,'hamming/fmt');
         BPSK_decoded = decode(BPSK_result,7,4,'hamming/fmt');
         
-        OOK_error = 0;
-        BPSK_error = 0;
-        % Calculate the average bit error rate for each sample test
-        for k = 1: data_length
-            if(OOK_decoded(k) ~= data(k))
-                OOK_error = OOK_error + 1;
-            end
-            if(BPSK_decoded(k) ~= data(k))
-                BPSK_error = BPSK_error + 1;
-            end
-        end
-        OOK_error = OOK_error./encoded_signal_length;
-        BPSK_error = BPSK_error./encoded_signal_length;
+        OOK_error =  biterr(OOK_decoded, data) ./encoded_signal_length;
+        BPSK_error = biterr(BPSK_decoded, data) ./encoded_signal_length;
         OOK_average_error = OOK_error + OOK_average_error;
         BPSK_average_error = BPSK_error + BPSK_average_error;
-
     end
+    
+	OOK_error_rate(i) = OOK_average_error / test_samples;
+    BPSK_error_rate(i) = BPSK_average_error / test_samples;
     
 %     Plot the 5db SNR signals
     if (SNR_dB(i) == 5)
@@ -177,9 +168,6 @@ for i = 1 : length(SNR)
         title("BPSK Decoded Data");
         xlim([0 1024]);
     end
-    
-	OOK_error_rate(i) = OOK_average_error / test_samples;
-    BPSK_error_rate(i) = BPSK_average_error / test_samples;
 end
 
 % Plot OOK vs DBSK bit error rate

@@ -90,7 +90,7 @@ for i = 1 : length(SNR)
         % Squared
         BPSK_squared = BPSK_received .* 2 .* carrier_signal;
         % Low-Pass Filter
-        BPSK_output = filtfilt(b, a, BPSK_multiplied);
+        BPSK_output = filtfilt(b, a, BPSK_squared);
         
         % Demodulation: Sampling and Threshold
         sampling_period = sampling_freq/data_rate;
