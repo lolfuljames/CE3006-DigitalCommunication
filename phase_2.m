@@ -14,6 +14,10 @@ data_rate = 1000; %1kbps
 data_length = 1024;
 amp = 5;
 
+%For FSK modulation
+fsk_freq_1 = 10000;
+fsk_freq_2 = 5000;
+
 % Low Pass 6th order Butterworth filter with 0.2 normalised cutoff freq
 [b, a] = butter(6, 0.2);
 
@@ -22,6 +26,8 @@ t = 0: 1/sample_freq : data_length/data_rate;
 
 % Carrier Signal Generation
 carrier_signal = amp .* cos(2*pi*carrier_freq*t);
+fsk_carrier_signal_1 = amp .* cos(2*pi*fsk_freq_1*t);
+fsk_carrier_signal_2 = amp .* cos(2*pi*fsk_freq_2*t);
 
 % Length of transmitted signal
 signal_length = sample_freq*data_length/data_rate + 1;
@@ -31,7 +37,7 @@ SNR_dB = 0:1:20;
 SNR = (10.^(SNR_dB/10));
 
 % Number of tests per SNR
-test_samples = 50;
+test_samples = 250;
 
 OOK_error_rate = zeros([length(SNR) 1]);
 BPSK_error_rate = zeros([length(SNR) 1]);
@@ -55,10 +61,17 @@ OOK_signal = carrier_signal .* signal;
 BPSK_source_signal = signal .* 2 - 1;
 BPSK_signal = carrier_signal .* BPSK_source_signal;
 
+% BFSK Modulation
+BFSK_source_signal_1 = fsk_carrier_signal_1 .* (signal == 1);
+BFSK_source_signal_0 = fsk_carrier_signal_2 .* (signal == 0);
+BFSK_signal = BFSK_source_signal_1 + BFSK_source_signal_0;
+
+
 %***************Xmit through Channel ***************
 %Simulates channel effect by adding in noise
 OOK_signal_power = (norm(OOK_signal)^2)/signal_length;
 BPSK_signal_power = (norm(BPSK_signal)^2)/signal_length;
+BFSK_signal_power = (norm(BFSK_signal)^2)/signal_length;
 
 % For different SNR values, test over 20 samples
 for i = 1 : length(SNR)
@@ -74,11 +87,17 @@ for i = 1 : length(SNR)
         noise_power_BPSK = BPSK_signal_power ./SNR(i);
         noise_BPSK = sqrt(noise_power_BPSK/2) .*randn(1,signal_length);
         
+        noise_power_BFSK = BFSK_signal_power ./SNR(i);
+        noise_BFSK = sqrt(noise_power_BFSK/2) .*randn(1,signal_length);
+        
 		%Received Signal OOK
 		OOK_received = OOK_signal+noise_OOK;
         
 		%Received Signal BPSK
 		BPSK_received = BPSK_signal+noise_BPSK;
+        
+        %Received Signal BFSK
+        BFSK_received = BFSK_signal+noise_BFSK;
         
         %*****************Receiver detection***************
         %OOK detection
