@@ -12,7 +12,7 @@ carrier_freq = 10000; %10kHz
 sample_freq = 16 * carrier_freq;
 data_rate = 1000; %1kbps
 data_length = 1024;
-amp = 10;
+amp = 5;
 
 % Low Pass 6th order Butterworth filter with 0.2 normalised cutoff freq
 [b, a] = butter(6, 0.2);
