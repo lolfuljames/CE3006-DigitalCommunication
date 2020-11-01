@@ -37,10 +37,11 @@ SNR_dB = 0:1:20;
 SNR = (10.^(SNR_dB/10));
 
 % Number of tests per SNR
-test_samples = 250;
+test_samples = 100;
 
 OOK_error_rate = zeros([length(SNR) 1]);
 BPSK_error_rate = zeros([length(SNR) 1]);
+BFSK_error_rate = zeros([length(SNR) 1]);
 
 %*********************Baseband***********************%
 % Generate symbols(data) with NRZ-L
@@ -77,6 +78,7 @@ BFSK_signal_power = (norm(BFSK_signal)^2)/signal_length;
 for i = 1 : length(SNR)
 	OOK_average_error = 0;
     BPSK_average_error = 0;
+    BFSK_average_error = 0;
     
 	for j = 1 : test_samples
         
@@ -120,6 +122,7 @@ for i = 1 : length(SNR)
         
         OOK_error = 0;
         BPSK_error = 0;
+        BFSK_error = 0;
         for k = 1: data_length
             if(OOK_result(k) ~= data(k))
                 OOK_error = OOK_error + 1;
@@ -127,11 +130,16 @@ for i = 1 : length(SNR)
             if(BPSK_result(k) ~= data(k))
                 BPSK_error = BPSK_error + 1;
             end
+            if(BFSK_result(k) ~= data(k))
+                BFSK_error = BFSK_error + 1;
+            end
         end
         OOK_error = OOK_error./data_length;
         BPSK_error = BPSK_error./data_length;
+        BFSK_error = BFSK_error./data_length;
         OOK_average_error = OOK_error + OOK_average_error;
         BPSK_average_error = BPSK_error + BPSK_average_error;
+        BFSK_average_error = BFSK_error + BFSK_average_error;
 
     end
     
@@ -195,6 +203,7 @@ for i = 1 : length(SNR)
     end
 	OOK_error_rate(i) = OOK_average_error / test_samples;
     BPSK_error_rate(i) = BPSK_average_error / test_samples;
+    BFSK_error_rate(i) = BFSK_average_error / test_samples;
 end
 
 % Plot OOK vs DBSK bit error rate
