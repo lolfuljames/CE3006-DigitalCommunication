@@ -17,7 +17,6 @@ threshold = 0;
 % Generate data length of 1024 bits
 data = generate_data(data_length); 
 
-%Set run times
 test_samples = 20;
 %Different SNR value
 % Average error for different SNR
@@ -25,7 +24,7 @@ bit_errors = [];
 for i = 1 : length(SNR)
 	bit_errors(i) = 0;
 	for j = 1 : test_samples
-        % Generate noise according to SNR
+    % Generate noise according to SNR
 		noise = generate_noise(data_length, noise_powers(i));   
 		% Received Signal is Data + Noise
 		received_signal = data + noise;                      
@@ -52,7 +51,7 @@ xlabel('SNR (dB)')
 title('BER vs SNR (dB) - Step Size: 1');
 hold on
 semilogy (SNR_dB, bit_errors,'bx', 'linewidth', 2);
-legend('Real BER','Theoretical BER');
+legend('Theoretical BER','Real BER');
 axis([0 50 1/(test_samples*data_length) 1]);
 hold off
 
@@ -64,7 +63,7 @@ semilogy (SNR_dB(1:5:50), theory_rate(1:5:50),'r', 'linewidth', 1.5);
 title('BER vs SNR (dB) - Step Size: 5');
 hold on
 semilogy (SNR_dB(1:5:50), bit_errors(1:5:50),'bx', 'linewidth', 2);
-legend('Real BER','Theoretical BER');
+legend('Theoretical BER','Real BER');
 axis([0 50 0 1]);
 hold off
 
