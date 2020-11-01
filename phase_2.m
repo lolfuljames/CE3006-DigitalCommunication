@@ -183,23 +183,46 @@ for i = 1 : length(SNR)
         subplot(4, 1, 4);
         plot(BPSK_result);
         title("BPSK Decoded Signal");
+        
+        figure(5)
+        subplot(4, 1, 1);
+        spectrogram(BFSK_signal, 'yaxis');
+        title("Transmitted BFSK Modulated Signal")
 
-        figure(5);
-        subplot(3, 1, 1);
+        subplot(4, 1, 2);
+        spectrogram(BFSK_received, 'yaxis');
+        title("Received BFSK Modulated Signal")
+
+        subplot(4, 1, 3);
+        plot(BFSK_sample)
+        title("BFSK Demodulated Signal")
+
+        subplot(4, 1, 4);
+        plot(BFSK_result);
+        title("BFSK Decoded Signal");
+
+        figure(6);
+        subplot(4, 1, 1);
         plot(data);
         title("Original Data");
         xlim([0 1024]);
         ylim([0 1]);
 
-        subplot(3, 1, 2);
+        subplot(4, 1, 2);
         plot(OOK_result);
         title("OOK Decoded Data");
         xlim([0 1024]);
 
-        subplot(3, 1, 3);
+        subplot(4, 1, 3);
         plot(BPSK_result);
         title("BPSK Decoded Data");
         xlim([0 1024]);
+        
+        subplot(4, 1, 4);
+        plot(BFSK_result);
+        title("BFSK Decoded Data");
+        xlim([0 1024]);
+        
     end
 	OOK_error_rate(i) = OOK_average_error / test_samples;
     BPSK_error_rate(i) = BPSK_average_error / test_samples;
@@ -211,8 +234,9 @@ figure(1)
 plot1 = semilogy(SNR_dB, OOK_error_rate,'r-*');
 hold on
 plot2 = semilogy(SNR_dB, BPSK_error_rate, 'b-*');
+plot3 = semilogy(SNR_dB, BFSK_error_rate, 'g-*');
 hold off
 ylabel('Bit Error Rate (BER)');
 xlabel('SNR (dB)');
-legend([plot1(1) plot2(1)],{'OOK','BPSK'})
+legend([plot1(1) plot2(1) plot3(1)],{'OOK','BPSK','BFSK'})
 xlim([0 50]);
