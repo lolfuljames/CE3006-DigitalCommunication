@@ -31,7 +31,7 @@ SNR_dB = 0:1:20;
 SNR = (10.^(SNR_dB/10));
 
 % Number of tests per SNR
-test_samples = 20;
+test_samples = 50;
 
 OOK_error_rate = zeros([length(SNR) 1]);
 BPSK_error_rate = zeros([length(SNR) 1]);
@@ -68,14 +68,17 @@ for i = 1 : length(SNR)
 	for j = 1 : test_samples
         
         %Generate Noise
-		noise_power = OOK_signal_power ./SNR(i);
-		noise = sqrt(noise_power/2) .*randn(1,signal_length);
-  
+		noise_power_OOK = OOK_signal_power ./SNR(i);
+		noise_OOK = sqrt(noise_power_OOK/2) .*randn(1,signal_length);
+        
+        noise_power_BPSK = BPSK_signal_power ./SNR(i);
+        noise_BPSK = sqrt(noise_power_BPSK/2) .*randn(1,signal_length);
+        
 		%Received Signal OOK
-		OOK_received = OOK_signal+noise;
+		OOK_received = OOK_signal+noise_OOK;
         
 		%Received Signal BPSK
-		BPSK_received = BPSK_signal+noise;
+		BPSK_received = BPSK_signal+noise_BPSK;
         
         %*****************Receiver detection***************
         %OOK detection
