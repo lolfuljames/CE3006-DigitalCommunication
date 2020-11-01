@@ -12,11 +12,11 @@ carrier_freq = 10000; %10kHz
 sample_freq = 16 * carrier_freq;
 data_rate = 1000; %1kbps
 data_length = 1024;
-amp = 5;
+amp = 100;
 
 %For FSK modulation
-fsk_freq_1 = 10000;
-fsk_freq_2 = 5000;
+fsk_freq_1 = 30000;
+fsk_freq_2 = 10000;
 
 % Low Pass 6th order Butterworth filter with 0.2 normalised cutoff freq
 [b, a] = butter(6, 0.2);
@@ -37,7 +37,7 @@ SNR_dB = 0:1:20;
 SNR = (10.^(SNR_dB/10));
 
 % Number of tests per SNR
-test_samples = 100;
+test_samples = 20;
 
 OOK_error_rate = zeros([length(SNR) 1]);
 BPSK_error_rate = zeros([length(SNR) 1]);
@@ -110,11 +110,18 @@ for i = 1 : length(SNR)
         BPSK_squared = BPSK_received .* (2 .* carrier_signal);
         BPSK_filtered = filtfilt(b, a, BPSK_squared);
         
-        %demodulate
+        %BFSK detection
+        BFSK_carrier_1_corr = BFSK_received .* (2 .* fsk_carrier_signal_1);
+        BFSK_branch_1_filtered = filtfilt(b, a, BFSK_carrier_1_corr);
+        BFSK_carrier_2_corr = BFSK_received .* (2 .* fsk_carrier_signal_2);
+        BFSK_branch_2_filtered = filtfilt(b, a, BFSK_carrier_2_corr);
+        BFSK_differenced = BFSK_branch_1_filtered - BFSK_branch_2_filtered;
+        
         %sampling AND threshold
         sample_period = sample_freq / data_rate;
         [OOK_sample, OOK_result] = sample_and_threshold(OOK_filtered, sample_period, amp^2/2, data_length);
         [BPSK_sample, BPSK_result] = sample_and_threshold(BPSK_filtered, sample_period, 0,data_length);
+        [BFSK_sample, BFSK_result] = sample_and_threshold(BFSK_differenced, sample_period, 0, data_length);
         
 		%Calculate the average error for every runtime
 		%Avg_ErrorOOK = num_error(resultOOK, EncodeHamming, Num_Bit) + Avg_ErrorOOK;                   
