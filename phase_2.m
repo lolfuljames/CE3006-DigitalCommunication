@@ -74,6 +74,10 @@ OOK_signal_power = (norm(OOK_signal)^2)/signal_length;
 BPSK_signal_power = (norm(BPSK_signal)^2)/signal_length;
 BFSK_signal_power = (norm(BFSK_signal)^2)/signal_length;
 
+noise_powers_OOK = OOK_signal_power ./ SNR;
+noise_powers_BPSK = BPSK_signal_power ./ SNR;
+noise_powers_BFSK = BFSK_signal_power ./ SNR;
+
 % For different SNR values, test over 20 samples
 for i = 1 : length(SNR)
 	OOK_average_error = 0;
@@ -236,12 +240,39 @@ for i = 1 : length(SNR)
     BFSK_error_rate(i) = BFSK_average_error / test_samples;
 end
 
+% Calculate OOK theoretical BER
+OOK_E1 = (1 / 2) * amp^2 / data_rate;
+OOK_E0 = 0;
+OOK_Eb = (1 / 2) * (OOK_E1 + OOK_E0);
+OOK_No = noise_powers_OOK ./ data_rate ./ 2;
+OOK_theory_rate = (1 / 2) .* erfc(sqrt(OOK_Eb ./ (2 .* OOK_No)));
+
+% Calculate BFSK theoretical BER
+BFSK_E1 = (1 / 2) * amp^2 / data_rate;
+BFSK_E0 = (1 / 2) * amp^2 / data_rate;
+BFSK_Eb = (1 / 2) * (BFSK_E1 + BFSK_E0);
+BFSK_No = noise_powers_BFSK ./ data_rate ./ 2;
+BFSK_theory_rate = (1 / 2) .* erfc(sqrt(BFSK_Eb ./ (2 .* BFSK_No)));
+
+% Calculate BPSK theoretical BER
+BPSK_E1 = (1 / 2) * amp^2 / data_rate;
+BPSK_E0 = (1 / 2) * amp^2 / data_rate;
+BPSK_Eb = (1 / 2) * (BPSK_E1 + BPSK_E0);
+BPSK_No = noise_powers_BPSK ./ data_rate ./ 2;
+BPSK_theory_rate = (1 / 2) .* erfc(sqrt(BPSK_Eb ./ BPSK_No));
+
 % Plot OOK vs DBSK bit error rate
 figure(1)
-plot1 = semilogy(SNR_dB, OOK_error_rate,'r-*');
+semilogy (SNR_dB, OOK_theory_rate,'r', 'linewidth', 1.5);
 hold on
-plot2 = semilogy(SNR_dB, BPSK_error_rate, 'b-*');
-plot3 = semilogy(SNR_dB, BFSK_error_rate, 'g-*');
+semilogy (SNR_dB, BPSK_theory_rate,'b', 'linewidth', 1.5);
+hold on
+semilogy (SNR_dB, BFSK_theory_rate,'g', 'linewidth', 1.5);
+hold on
+plot1 = semilogy(SNR_dB, OOK_error_rate,'r*');
+hold on
+plot2 = semilogy(SNR_dB, BPSK_error_rate, 'b*');
+plot3 = semilogy(SNR_dB, BFSK_error_rate, 'g*');
 hold off
 ylabel('Bit Error Rate (BER)');
 xlabel('SNR (dB)');
