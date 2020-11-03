@@ -46,7 +46,7 @@ BFSK_error_rate = zeros([length(SNR) 1]);
         
 % Generate Hamming encoded signals
 data = round(rand(1,data_length));
-hamming_signal= encode(data,7,4,'hamming/fmt');
+hamming_signal= encode(data,7,4,'hamming/binary');
 
 signal = zeros(1, signal_length);
 for k = 1: signal_length - 1
@@ -121,9 +121,9 @@ for i = 1 : length(SNR)
         [BPSK_sample, BPSK_result] = sample_and_threshold(BPSK_output, sample_period, 0, encoded_signal_length);
         [BFSK_sample, BFSK_result] = sample_and_threshold(BFSK_differenced, sample_period, 0, encoded_signal_length);
 
-        OOK_decoded = decode(OOK_result,7,4,'hamming/fmt');
-        BPSK_decoded = decode(BPSK_result,7,4,'hamming/fmt');
-        BFSK_decoded = decode(BFSK_result,7,4,'hamming/fmt');
+        OOK_decoded = decode(OOK_result,7,4,'hamming/binary');
+        BPSK_decoded = decode(BPSK_result,7,4,'hamming/binary');
+        BFSK_decoded = decode(BFSK_result,7,4,'hamming/binary');
         
         OOK_error =  biterr(OOK_decoded, data) ./encoded_signal_length;
         BPSK_error = biterr(BPSK_decoded, data) ./encoded_signal_length;
