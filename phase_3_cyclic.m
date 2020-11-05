@@ -29,7 +29,7 @@ sampled_signal_length = sampling_freq*encoded_signal_length/data_rate + 1;
 sampled_unencoded_signal_length = sampling_freq*signal_length/data_rate + 1;
 
 % Number of samples
-nb_samples = 20;
+nb_samples = 200;
 
 % Low-pass filter - 6th order, 0.2 cutoff frequency
 [b, a] = butter(6, 0.2);

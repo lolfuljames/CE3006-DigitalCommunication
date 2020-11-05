@@ -35,11 +35,11 @@ signal_length = sample_freq*encoded_signal_length/data_rate + 1;
 signal_length_unencoded = sample_freq*data_length/data_rate + 1;
 
 % SNR values to test
-SNR_dB = 0:1:10;
+SNR_dB = 0:1:20;
 SNR = (10.^(SNR_dB/10));
 
 % Number of tests per SNR
-test_samples = 50;
+test_samples = 200;
 
 OOK_error_rate = zeros([length(SNR) 1]);
 unencoded_OOK_error_rate = zeros([length(SNR) 1]);
