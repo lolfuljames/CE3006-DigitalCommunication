@@ -32,15 +32,17 @@ fsk_carrier_signal_2 = amp .* cos(2*pi*fsk_freq_2*t);
 
 % Length of transmitted signal
 signal_length = sample_freq*encoded_signal_length/data_rate + 1;
+signal_length_unencoded = sample_freq*data_length/data_rate + 1;
 
 % SNR values to test
-SNR_dB = 0:1:10;
+SNR_dB = 0:1:20;
 SNR = (10.^(SNR_dB/10));
 
 % Number of tests per SNR
-test_samples = 1500;
+test_samples = 200;
 
 OOK_error_rate = zeros([length(SNR) 1]);
+unencoded_OOK_error_rate = zeros([length(SNR) 1]);
 BPSK_error_rate = zeros([length(SNR) 1]);
 BFSK_error_rate = zeros([length(SNR) 1]);
         
@@ -49,13 +51,19 @@ data = round(rand(1,data_length));
 hamming_signal= encode(data,7,4,'hamming/binary');
 
 signal = zeros(1, signal_length);
+signal_unencoded = zeros(1, signal_length_unencoded);
 for k = 1: signal_length - 1
     signal(k) = hamming_signal(ceil(k*data_rate/sample_freq));
 end
+for k = 1: signal_length_unencoded - 1
+    signal_unencoded(k) = data(ceil(k*data_rate/sample_freq));
+end
 signal(signal_length) = signal(signal_length - 1);
+signal_unencoded(signal_length_unencoded) = signal_unencoded(signal_length_unencoded - 1);
 
 % OOK Modulation
 OOK_signal = carrier_signal .* signal;
+unencoded_OOK_signal = carrier_signal(1:length(signal_unencoded)) .* signal_unencoded;
 
 % BPSK Modulation
 BPSK_source_signal = signal .* 2 - 1;
@@ -67,12 +75,14 @@ BFSK_source_signal_0 = fsk_carrier_signal_2 .* (signal == 0);
 BFSK_signal = BFSK_source_signal_1 + BFSK_source_signal_0;
 
 OOK_signal_power = (norm(OOK_signal)^2)/signal_length;
+unencoded_OOK_signal_power = (norm(unencoded_OOK_signal)^2)/signal_length_unencoded;
 BPSK_signal_power = (norm(BPSK_signal)^2)/signal_length;
 BFSK_signal_power = (norm(BFSK_signal)^2)/signal_length;
 
 % For different SNR values, test over 20 samples
 for i = 1 : length(SNR)
 	OOK_average_error = 0;
+    unencoded_OOK_average_error = 0;
     BPSK_average_error = 0;
     BFSK_average_error = 0;
     
@@ -82,6 +92,9 @@ for i = 1 : length(SNR)
 		noise_power_OOK = OOK_signal_power ./SNR(i);
 		noise_OOK = sqrt(noise_power_OOK) .*randn(1,signal_length);
         
+        noise_power_unencoded_OOK = unencoded_OOK_signal_power ./ SNR(i);
+        noise_unencoded_OOK =  sqrt(noise_power_unencoded_OOK) .*randn(1,signal_length_unencoded);
+        
         noise_power_BPSK = BPSK_signal_power ./SNR(i);
         noise_BPSK = sqrt(noise_power_OOK) .*randn(1,signal_length);
         
@@ -90,12 +103,15 @@ for i = 1 : length(SNR)
         
 		% OOK Signal on Receiver's end
 		OOK_received = OOK_signal+noise_OOK;
+        unencoded_OOK_received = unencoded_OOK_signal + noise_unencoded_OOK;
         
         % Start of OOK Detection
         OOK_squared = OOK_received .* 2.* carrier_signal;
+        unencoded_OOK_squared = unencoded_OOK_received .* 2 .* carrier_signal(1:length(signal_unencoded));
         
         % Low Pass Filter
         OOK_filtered = filtfilt(b, a, OOK_squared);
+        unencoded_OOK_filtered = filtfilt(b, a, unencoded_OOK_squared);
         
 		% BPSK Signal on Receiver's end
 		BPSK_received = BPSK_signal+noise_BPSK;
@@ -118,6 +134,7 @@ for i = 1 : length(SNR)
         % Demodulation by sample & threshold
         sample_period = sample_freq / data_rate;
         [OOK_sample, OOK_result] = sample_and_threshold(OOK_filtered, sample_period, (amp^2)/2, encoded_signal_length);
+        [unencoded_OOK_sample, unencoded_OOK_result] = sample_and_threshold(unencoded_OOK_filtered, sample_period, (amp^2)/2, data_length);
         [BPSK_sample, BPSK_result] = sample_and_threshold(BPSK_output, sample_period, 0, encoded_signal_length);
         [BFSK_sample, BFSK_result] = sample_and_threshold(BFSK_differenced, sample_period, 0, encoded_signal_length);
 
@@ -126,14 +143,16 @@ for i = 1 : length(SNR)
         BFSK_decoded = decode(BFSK_result,7,4,'hamming/binary');
         
         OOK_error =  biterr(OOK_decoded, data) ./encoded_signal_length;
+        unencoded_OOK_error = biterr(unencoded_OOK_result, data) ./data_length;
         BPSK_error = biterr(BPSK_decoded, data) ./encoded_signal_length;
         BFSK_error = biterr(BFSK_decoded, data) ./encoded_signal_length;
         OOK_average_error = OOK_error + OOK_average_error;
+        unencoded_OOK_average_error = unencoded_OOK_error + unencoded_OOK_average_error;
         BPSK_average_error = BPSK_error + BPSK_average_error;
         BFSK_average_error = BFSK_error + BFSK_average_error;
     end
-    
 	OOK_error_rate(i) = OOK_average_error / test_samples;
+    unencoded_OOK_error_rate(i) = unencoded_OOK_average_error / test_samples;
     BPSK_error_rate(i) = BPSK_average_error / test_samples;
     BFSK_error_rate(i) = BFSK_average_error / test_samples;
     
@@ -231,10 +250,11 @@ p1 = semilogy(SNR_dB, OOK_error_rate,'r-*');
 hold on
 p2 = semilogy(SNR_dB, BPSK_error_rate, 'b-*');
 p3 = semilogy(SNR_dB, BFSK_error_rate, 'g-*');
+p4 = semilogy(SNR_dB, unencoded_OOK_error_rate, 'k-*');
 
 hold off
 ylabel('Bit Error Rate (BER)');
 xlabel('SNR (dB)');
-legend([p1(1) p2(1) p3(1)],{'OOK','BPSK','BFSK'})
+legend([p1(1) p2(1) p3(1) p4(1)],{'Hamming/OOK','Hamming/BPSK',' Hamming/BFSK','Unencoded/OOK'})
 xlim([0 50]);
 
