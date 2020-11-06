@@ -293,7 +293,6 @@ BPSK_Eb = (1 / 2) * (BPSK_E1 + BPSK_E0);
 BPSK_No = noise_powers_BPSK ./ data_rate ./ 2;
 BPSK_theory_rate = (1 / 2) .* erfc(sqrt(BPSK_Eb ./ BPSK_No));
 
-% Plot OOK vs DBSK bit error rate
 % Plot OOK vs BFSK and BPSK bit error rate
 figure(1)
 semilogy (SNR_dB, OOK_theory_rate,'r', 'linewidth', 1.5);
@@ -305,9 +304,25 @@ hold on
 plot1 = semilogy(SNR_dB, OOK_error_rate,'r*');
 hold on
 plot2 = semilogy(SNR_dB, BPSK_error_rate, 'b*');
+hold on
 plot3 = semilogy(SNR_dB, BFSK_error_rate, 'g*');
 hold off
 ylabel('Bit Error Rate (BER)');
 xlabel('SNR (dB)');
 legend([plot1(1) plot2(1) plot3(1)],{'OOK','BPSK','BFSK'})
 xlim([0 50]);
+title("Empirical and Theoretical BER for Coherrent Detection Techniques")
+
+%Plot OOK vs BFSK vs BPSK without theoretical rate
+figure(11)
+plot1 = semilogy(SNR_dB, OOK_error_rate,'r-*');
+hold on
+plot2 = semilogy(SNR_dB, BPSK_error_rate, 'b-*');
+hold on
+plot3 = semilogy(SNR_dB, BFSK_error_rate, 'g-*');
+hold off
+ylabel('Bit Error Rate (BER)');
+xlabel('SNR (dB)');
+legend([plot1(1) plot2(1) plot3(1)],{'OOK','BPSK','BFSK'})
+xlim([0 50]);
+title("Empirical BER for Coherrent Detection Techniques")
