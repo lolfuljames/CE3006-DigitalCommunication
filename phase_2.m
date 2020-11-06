@@ -156,63 +156,94 @@ for i = 1 : length(SNR)
     
 %    Plot the 5db SNR signals
     if (SNR_dB(i) == 5)
+        %Plot of original data with respect to time
         figure(2)
         plot(data, 'b');
         title("Original Data")
         xlim([0 1100])
-
+        
+        % Plotting of spectrogram for modulated signal and corrupted
+        % signal for OOK
         figure(3)
-        subplot(4, 1, 1);
+        subplot(2, 1, 1);
         spectrogram(OOK_signal, 'yaxis');
         title("Transmitted OOK Modulated Signal")
 
-        subplot(4, 1, 2);
+        subplot(2, 1, 2);
         spectrogram(OOK_received, 'yaxis');
         title("Received OOK Modulated Signal")
-
-        subplot(4, 1, 3);
-        plot(OOK_sample)
-        title("OOK Demodulated Signal")
-
-        subplot(4, 1, 4);
-        plot(OOK_result);
-        title("OOK Decoded Signal");
-
+        
+        % Plotting of spectrogram for modulated signal and corrupted
+        % signal for BPSK
         figure(4)
-        subplot(4, 1, 1);
+        subplot(2, 1, 1);
         spectrogram(BPSK_signal, 'yaxis');
         title("Transmitted BPSK Modulated Signal")
 
-        subplot(4, 1, 2);
+        subplot(2, 1, 2);
         spectrogram(BPSK_received, 'yaxis');
         title("Received BPSK Modulated Signal")
-
-        subplot(4, 1, 3);
-        plot(BPSK_sample)
-        title("BPSK Demodulated Signal")
-
-        subplot(4, 1, 4);
-        plot(BPSK_result);
-        title("BPSK Decoded Signal");
         
+        % Plotting of spectrogram for modulated signal and corrupted
+        % signal for BFSK
         figure(5)
-        subplot(4, 1, 1);
+        subplot(2, 1, 1);
         spectrogram(BFSK_signal, 'yaxis');
         title("Transmitted BFSK Modulated Signal")
 
-        subplot(4, 1, 2);
+        subplot(2, 1, 2);
         spectrogram(BFSK_received, 'yaxis');
         title("Received BFSK Modulated Signal")
-
+        
+        %Plotting the baseband data and modulated data before transmission
+        figure(7);
+        subplot(4,1,1);
+        plot(signal(1:1000));
+        title("Baseband oversampled signal (snippet)");
+        
+        subplot(4, 1, 2);
+        plot(OOK_signal(1:1000));
+        title("OOK modulated signal (Snippet)");
+        
         subplot(4, 1, 3);
-        plot(BFSK_sample)
-        title("BFSK Demodulated Signal")
-
+        plot(BPSK_signal(1:1000));
+        title("BPSK modulated signal (Snippet)");
+        
         subplot(4, 1, 4);
-        plot(BFSK_result);
-        title("BFSK Decoded Signal");
-
-        figure(6);
+        plot(BFSK_signal(1:1000));
+        title("BFSK modulated signal (Snippet)");
+        
+        %Plotting of Received signal (corrupted with noise)
+        figure(8);
+        subplot(3, 1, 1);
+        plot(OOK_received(1:1000));
+        title("OOK received with noise (Snippet)");
+        
+        subplot(3,1,2);
+        plot(BPSK_received(1:1000));
+        title("BPSK received with noise (Snippet)");
+        
+        subplot(3,1,3);
+        plot(BFSK_received(1:1000));
+        title("BFSK received with noise (Snippet)")
+        
+        %Plotting of demodulated signal (mixed and passed through low pass
+        %filter
+        figure(9);
+        subplot(3, 1, 1);
+        plot(OOK_sample);
+        title("OOK demodulated and sampled");
+        
+        subplot(3,1,2);
+        plot(BPSK_sample);
+        title("BPSK demodulated and sampled");
+        
+        subplot(3,1,3);
+        plot(BFSK_sample);
+        title("BFSK demodulated and sampled")
+        
+        %Plotting of results from threshold logic (decoded)
+        figure(10);
         subplot(4, 1, 1);
         plot(data);
         title("Original Data");
@@ -233,6 +264,7 @@ for i = 1 : length(SNR)
         plot(BFSK_result);
         title("BFSK Decoded Data");
         xlim([0 1024]);
+        
         
     end
 	OOK_error_rate(i) = OOK_average_error / test_samples;
@@ -262,6 +294,7 @@ BPSK_No = noise_powers_BPSK ./ data_rate ./ 2;
 BPSK_theory_rate = (1 / 2) .* erfc(sqrt(BPSK_Eb ./ BPSK_No));
 
 % Plot OOK vs DBSK bit error rate
+% Plot OOK vs BFSK and BPSK bit error rate
 figure(1)
 semilogy (SNR_dB, OOK_theory_rate,'r', 'linewidth', 1.5);
 hold on
